@@ -116,7 +116,7 @@ while(<IN2>){ # read lines from Read2
       $Read_num[$index_hash{$hash}] ++; # add a another read for the barcode
       if($read_len_r1>0){
       $T = <IN1>; chomp($T); # remove new line
-      print OUT1 "$id\#$hash\#\/1\tBX:Z:$hash\n";
+      print OUT1 "$id\#$hash\#\/1\t$split_barcode_num\tBX:Z:$hash\n";
       $T = <IN1>; chomp($T);
       $seq_r1 = substr($T, $gdna_start_idx_r1, $read_len_r1);
       print OUT1 "$seq_r1\n"; # JUST PRINT
@@ -128,9 +128,9 @@ while(<IN2>){ # read lines from Read2
         }
       # print OUT2 "$id\#$hash\#\/2\tBX:Z:$hash\n";
       if($additional_bc_len>0){
-        print OUT2 "$id\#$hash\_$additional_bc\#\/2\tBX:Z:$hash\n";
+        print OUT2 "$id\#$hash\_$additional_bc\#\/2\t$split_barcode_num\tBX:Z:$hash\n";
       } else {
-        print OUT2 "$id\#$hash\#\/2\tBX:Z:$hash\n";
+        print OUT2 "$id\#$hash\#\/2\t$split_barcode_num\tBX:Z:$hash\n";
       }
       print OUT2 "$read\n";
       $T = <IN2>; $n++;chomp($T);
@@ -143,7 +143,7 @@ while(<IN2>){ # read lines from Read2
       $Read_num[0] ++;
       if($read_len_r1>0) {
       $T = <IN1>; chomp($T);
-      print OUT1 "$id\#0_0_0\#\/1\tBX:Z:0_0_0\n";
+      print OUT1 "$id\#0_0_0\#\/1\t0\tBX:Z:0_0_0\n";
       $T = <IN1>; chomp($T);
       $seq_r1 = substr($T, $gdna_start_idx_r1, $read_len_r1);
       print OUT1 "$seq_r1\n";
@@ -155,9 +155,9 @@ while(<IN2>){ # read lines from Read2
       }
       # print OUT2 "$id\#0_0_0\#\/2\tBX:Z:0_0_0\n";
       if($additional_bc_len>0){
-        print OUT2 "$id\#0_0_0\_$additional_bc\#\/2\tBX:Z:0_0_0\n";
+        print OUT2 "$id\#0_0_0\_$additional_bc\#\/2\t0\tBX:Z:0_0_0\n";
       } else {
-        print OUT2 "$id\#0_0_0\#\/2\tBX:Z:0_0_0\n";
+        print OUT2 "$id\#0_0_0\#\/2\t0\tBX:Z:0_0_0\n";
       }
       print OUT2 "$read\n";
       $T = <IN2>; $n++;chomp($T);
