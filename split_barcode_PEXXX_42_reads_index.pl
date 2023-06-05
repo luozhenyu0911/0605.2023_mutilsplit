@@ -175,7 +175,8 @@ close OUT1;
 close OUT2;
 
 
-open OUT3, ">split_stat_read1.log" or die "Can't write file";
+### open OUT3, ">split_stat_read1.log" or die "Can't write file";
+open OUT3, ">$ARGV[4].log" or die "Can't write file";
 print OUT3 "Barcode_types = $barcode_each * $barcode_each * $barcode_each = $barcode_types\n";
 my $r;
 $r = 100 *  $split_barcode_num/$barcode_types;
@@ -189,7 +190,8 @@ for(my $i=1;$i<=$split_barcode_num;$i++){
 close OUT3;
 
 ### check split rate of each individual bc
-open OUT4, ">bc.individual.count.log" or die "Can't write file";
+### open OUT4, ">bc.individual.count.log" or die "Can't write file";
+open OUT4, ">$ARGV[4].bc.diversity.count.log" or die "Can't write file";
 if($read_len_r1==0) {
   print OUT4 "$reads_num\n";
 } else{

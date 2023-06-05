@@ -227,14 +227,17 @@ rule splitNfq:
         r1="data/read_1.fq.gz",
         r2="data/read_2.fq.gz"
     output:
-        expand("out/read_2.part_{part_id}.fq.gz", part_id=part_ids)
+        expand("out/read_2.part_{part_id}.fq.gz", part_id=part_ids),
+        expand("out/read_1.part_{part_id}.fq.gz", part_id=part_ids)
     params:
         splitN = config['params']['splitNfq']
     run:
         if config['params']['sequence_type']=="se":
-            shell("~/anaconda3/bin/seqkit split2 {input.r2} -p {params.splitN} -O ./out -f ")
+            shell("/home/ycai/anaconda3/bin/seqkit split2 {input.r2} -p {params.splitN} -O ./out -f -j {params.splitN}")
+            for fq in part_ids:
+                shell("touch out/read_1.part_{fq}.fq.gz")
         else:
-            shell("~/anaconda3/bin/seqkit split2 -1 {input.r1} -2 {input.r2} -p {params.splitN} -O ./out -f ")
+            shell("/home/ycai/anaconda3/bin/seqkit split2 -1 {input.r1} -2 {input.r2} -p {params.splitN} -O ./out -f -j {params.splitN}")
 
 # rule for splitting reads
 rule split_reads:
@@ -250,9 +253,9 @@ rule split_reads:
         src_dir = config['params']['src_dir'],
         randomBC_dir = config['params']['randomBC_dir'],
         general_python = config['params']['general_python'],
-        bc_len = config['params']['sbc_len'],
-        cbc_len = config['params']['cbc_len'],
-        bc_len_redundant = cbc_len
+        bc_len = config['params']['bc_len'],
+        bc_len_redundant = config['params']['bc_len_select'],
+        bc_len_select = config['params']['bc_len_select'],
         bc_start = config['params']['bc_start'],
         gdna_start = config['params']['gdna_start'],
         additional_bc_start = config['params']['additional_bc_start'],
@@ -266,10 +269,10 @@ rule split_reads:
                 params.barcode = '/home/ycai/hm/dev/pipeline/CGI_WGS_nonstandard_Pipeline/barcode.list'
                 shell("perl /home/ycai/hm/test/new_bc_random/test/split_py/full_data/split_randomBC_index_dualBC.pool.pl "
                 "{params.toolsdir}{params.barcode} "
-                "out/read_1.part_{wildcards.part_id}.fq.gz out/read_2.part_{wildcards.part_id}.fq.gz {params.r2_len} data/split_read_{wildcards.part_id} {params.cbc_len} {params.bc_len_redundant} {params.bc_start} {params.gdna_start} {params.additional_bc_start} {params.additional_bc_len} {params.gdna_start_r1} {params.r1_len} {params.additional_bc_len_r1} "
+                "out/read_1.part_{wildcards.part_id}.fq.gz out/read_2.part_{wildcards.part_id}.fq.gz {params.r2_len} data/split_read_{wildcards.part_id} {params.bc_len_select} {params.bc_len_redundant} {params.bc_start} {params.gdna_start} {params.additional_bc_start} {params.additional_bc_len} {params.gdna_start_r1} {params.r1_len} {params.additional_bc_len_r1} "
                 "2> data/split_read_{wildcards.part_id}.err ")
                 # shell("{params.general_python} {params.randomBC_dir}/src/split_randomBC.py "
-                # "--read1_fq_gz {input.r1} --read2_fq_gz {input.r2} --read_len {params.r2_len} --output_suffix data/split_read --cbc_len {params.cbc_len} --bc_len_redundant {params.bc_len_redundant} --bc_start {params.bc_start} --gdna_start {params.gdna_start} --additional_bc_start {params.additional_bc_start} --additional_bc_len {params.additional_bc_len} "
+                # "--read1_fq_gz {input.r1} --read2_fq_gz {input.r2} --read_len {params.r2_len} --output_suffix data/split_read --bc_len_select {params.bc_len_select} --bc_len_redundant {params.bc_len_redundant} --bc_start {params.bc_start} --gdna_start {params.gdna_start} --additional_bc_start {params.additional_bc_start} --additional_bc_len {params.additional_bc_len} "
                 # "2> data/split_stat_read.err")
             elif config['params']['bc_condition'] == 'standard':
                 # determine which barcode list to use
@@ -283,9 +286,10 @@ rule split_reads:
                     
                 # if get_read_diff(input[0], input[1]):
                 if params.bc_len==42:
-                    shell("perl {params.src_dir}/src/split_barcode_PEXXX_42_reads_index.pl "
+                    #shell("perl {params.src_dir}/src/split_barcode_PEXXX_42_reads_index.pl "
+                    shell("perl ./split_barcode_PEXXX_42_reads_index.pl "
                         "{params.toolsdir}{params.barcode} "
-                        "{input} {params.r2_len} data/split_read {params.bc_start} {params.gdna_start} {params.additional_bc_start} {params.additional_bc_len} {params.gdna_start_r1} {params.r1_len} "
+                        "out/read_1.part_{wildcards.part_id}.fq.gz out/read_2.part_{wildcards.part_id}.fq.gz {params.r2_len} data/split_read_{wildcards.part_id} {params.bc_start} {params.gdna_start} {params.additional_bc_start} {params.additional_bc_len} {params.gdna_start_r1} {params.r1_len} "
                         "2> data/split_stat_read.err")
                     # shell("{params.general_python} {params.src_dir}/split_barcode_PEXXX_42_reads.py "
                     # "--barcode_list {params.toolsdir}{params.barcode} "
@@ -296,13 +300,13 @@ rule split_reads:
                     # this uses the 30 bp split script
                     shell("perl {params.toolsdir}/tools/split_barcode_PEXXX_30_reads.pl "
                         "{params.toolsdir}{params.barcode} "
-                        "{input} {params.len} data/split_read "
+                        "out/read_1.part_{wildcards.part_id}.fq.gz out/read_2.part_{wildcards.part_id}.fq.gz {params.len} data/split_read_{wildcards.part_id} "
                         "2> data/split_stat_read.err")
             elif config['params']['bc_condition'] == 'BCgDNA':
                 params.barcode = determine_barcode_list(400000)
                 shell("perl {params.src_dir}/src/split_barcode_PEXXX_42_reads_BCgDNA.pl "
                         "{params.toolsdir}{params.barcode} "
-                        "{input} {params.r2_len} data/split_read {params.bc_start} {params.gdna_start} {params.additional_bc_start} {params.additional_bc_len} {params.gdna_start_r1} {params.r1_len} {params.adapter_len} "
+                        "out/read_1.part_{wildcards.part_id}.fq.gz out/read_2.part_{wildcards.part_id}.fq.gz {params.r2_len} data/split_read_{wildcards.part_id} {params.bc_start} {params.gdna_start} {params.additional_bc_start} {params.additional_bc_len} {params.gdna_start_r1} {params.r1_len} {params.adapter_len} "
                         "2> data/split_stat_read.err")
             else:
                 print("unknown type")
@@ -311,7 +315,7 @@ rule split_reads:
 
 rule cat_fq2:
     input:
-        expand("data/split_read_{part_id}.2.fq.gz", part_id=part_id)
+        expand("data/split_read_{part_id}.2.fq.gz", part_id=part_ids)
     output:
         "data/split_read.2.fq.gz"
     run:
@@ -319,7 +323,7 @@ rule cat_fq2:
 
 rule cat_fq1:
     input:
-        expand("data/split_read_{part_id}.2.fq.gz", part_id=part_id)
+        expand("data/split_read_{part_id}.2.fq.gz", part_id=part_ids)
     output:
         "data/split_read.1.fq.gz"
     run:
@@ -328,7 +332,6 @@ rule cat_fq1:
         else:
             shell("cat data/split_read_*.1.fq.gz > data/split_read.1.fq.gz && rm data/split_read_*.1.fq.gz && rm out/read_1.part_*.fq.gz ")
 
-### merge split_stat_read1.log in each thread into one file
 rule cat_log:
     input:
         "data/split_read.2.fq.gz"
@@ -337,6 +340,7 @@ rule cat_log:
     params: 
         splitN = config['params']['splitNfq']
     run:
+        #shell("python /home/ycai/hm/test/CGI_WGS_nonstandard_Pipeline/test/pool/split_py/full_data/combine_split.py --splitNfq {params.splitN} ")
         shell("python /home/ycai/hm/test/CGI_WGS_nonstandard_Pipeline/test/pool/split_py/full_data/combine_split.py --splitNfq {params.splitN} && rm data/*log && rm data/*err ")
 
 rule fastqc:
