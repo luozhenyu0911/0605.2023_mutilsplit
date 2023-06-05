@@ -1,0 +1,212 @@
+samples:
+    # specifies expected location of split reads [data/split_read.1.fq.gz, data/split_read.2.fq.gz] for PE
+    # SE read treated as read2
+    fastq: [data/split_read.1.fq.gz, data/split_read.2.fq.gz]
+    # path for reads.fq.gz before splitting, leave blank if start from split.read.fq.gz, 
+    fq_path: "../fastq"
+    # list of lanes to use. format as fastq/V350094071_L04, leave blank if start from split.read.fq.gz,
+    # in the format of *_1.fq.gz
+    lanes: [V350170431_L01]
+    name: "V350170431_L01"
+    # sample or id to use for generating targets
+    id: "data"
+    # Chromosomes to evaluate for fragment length and phasing
+    # Leave empty for cDNA/mRNA ref or if there are too many chromosomes to specify or you're unsure
+    # This will force snakemake to evaluate all chromosomes
+    chroms: [chr1, chr2, chr3, chr4, chr5, chr6, chr7, chr8, chr9, chr10, chr11, chr12, chr13, chr14, chr15, chr16, chr17, chr18, chr19, chr20, chr21, chr22, chrX, chrY]
+modules:
+    BCgDNA: False
+    # set false if no BC in seq, 
+    BCsplit: True
+    # set mapping=False to only run BC split
+    mapping: False
+    # Should snakemake do stlfr specific analyses, false if the library isn't of linked reads
+    stLFR: False
+    # run eval metrics, or just mapping
+    eval_metrics: False
+    # Should a VCF be generated
+    variant_calling: False
+    # Should VCF results be benchmarked against the files specified under benchmark
+    benchmarking: False
+    # Should longhap and hapcut be run and evaluated
+    phasing: False
+    # You'll probably never run this
+    mate_pair_analysis: False
+    # or this
+    read_overlap_analysis: False
+    # or this
+    duplicate_plot: False
+    # output files necessary for UMI analysis
+    umi_analysis: False
+    # run de novo assembly on each fragment defined by BC
+    frag_de_novo: False
+params:
+    splitNfq: 32
+    is_fulllane_unfiltered: True
+    ########### path in SJ ###########
+    ### select from gdna, mrna
+    library_type: 'gdna'
+    ref_fa: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa"
+    ref_fa_mrna: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38/ERCC/GRCh38_latest_rna.fna.ercc.fasta"
+    # ref_fa: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38/GRCh38_latest_rna.fna"
+    toolsdir: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools"
+    src_dir: "/home/ycai/hm/dev/pipeline/dev/CGI_WGS_nonstandard_Pipeline/"
+    randomBC_dir: "/home/ycai/hm/dev/pipeline/new_bc_random/"
+    # path to gatk install, if you change you may have to modify flags in rules
+    gatk_install: "/home/eanderson/gatk-4.1.2.0/gatk"
+    calc_frag_python: "/home/ycai/anaconda3/envs/General3/bin/python"
+    # Path to dbSNP, update for hs37d5. Leave blank if there's no appropriate version of dnsnp
+    dbsnp_path: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/dbsnp_138.hg38.chrfix.vcf.gz"
+    #GC Bias index for calculations
+    gc_bias_index: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa.500.gc"
+    # rtg for SNP accuracy
+    rtg_install: "/research/rv-02/home/qmao/Scripts/rtg-tools-3.8.4/rtg"
+    gcbias_python: "/home/ycai/anaconda3/envs/gcbias/bin/python"
+    general_python: "/home/ycai/anaconda3/bin/python"
+    ########### ###########
+
+    ########### path in SZ ###########
+    # ref_fa: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/data/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa"
+    # toolsdir: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/"
+    # src_dir: "/hwfssz8/MGI_CG_SZ/USER/luozhenyu/software/git_pipeline/dev/CGI_WGS_nonstandard_Pipeline/"
+    # # path to gatk install, if you change you may have to modify flags in rules
+    # gatk_install: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/tools/gatk-4.1.2.0/gatk"
+    # calc_frag_python: "/hwfssz8/MGI_CG_SZ/USER/luozhenyu/anaconda3/envs/General3/bin/python"
+    # # Path to dbSNP, update for hs37d5. Leave blank if there's no appropriate version of dnsnp
+    # dbsnp_path: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/data/dbsnp_138.hg38.chrfix.vcf.gz"
+    # #GC Bias index for calculations
+    # gc_bias_index: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/data/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa.500.gc"
+    # # rtg for SNP accuracy
+    # rtg_install: "/hwfssz8/MGI_CG_SZ/USER/luozhenyu/software/rtg-tools-3.8.4/rtg"
+    # # Path to the python version Qing used for gcbias, calc_frag
+    # gcbias_python: "/hwfssz8/MGI_CG_SZ/USER/luozhenyu/anaconda3/envs/gcbias/bin/python"
+    ########### ###########
+    # sequence_type pe or se
+    sequence_type: 'se'
+    # choose from 'random_bc' for cLFR and 'standard' for stLFR, bc1_only for stLFR
+    bc_condition: 'standard'
+    bwa_mem: 'mem'
+    gc_swap: False
+    platform: "BGI-seq"
+    # Read length without barcode (SE treate as R2, PE, R2 for PE diff_length), adapter+gDNA: 79+79 or 45+113 for PE40+200, 9 for SE51 
+    # R2
+    gdna_start: 1
+    read_len: 75
+    bc_start: 76
+    # stLFR BC
+    bc_len : 42
+    adapter_len: 0
+    # R1
+    gdna_start_r1: 0
+    read_len_r1: 0
+    ## additional_bc_len (transposon BC), add to readID
+    additional_bc_start: 0
+    additional_bc_len: 0
+    additional_bc_len_r1: 0
+    # deprecated because of apply transposonBC (cLFR randomBC, include more bc regions to test, bc15+)
+    # bc_len_redundant: 20
+    # cLFR randomBC, bc len to test in calc_frag anlysis, length for bx
+    bc_len_select: 0
+    barcode: "/barcode.list"
+    barcode_RC: "/barcode_RC.list"
+    ## choose from barcode, barcode_RC
+    enforced_bc_list: ""
+    # sentieon install directory. This is specific to their commercial tools, not the assembly software
+    sentieon_install: "/opt/sentieon-genomics-201808.07"
+    # License server path
+    sentieon_license: "SENTIEON_LICENSE=sentieon-license-server.completegenomics.com:8990"
+    # Path to the python version Wenlan used for some analyses
+    wenlan_python: "/opt/cgi-anaconda2-4.4.0/bin/python"  
+    # Path to Sentieon's variant filtering model
+    sentieon_model: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/DNAscope_BGI_model_beta.txt"
+    # bcftools install
+    bcftools: "/opt/cgi-tools/bin/bcftools"
+    # a parameter for hapcut, shouldn't have to be changed
+    hapcut_link_dist: 100000
+    # LongHap executable path
+    longhap: "/home/ysun/LongHap_v1.3.1/Bin/LongHap.pl"
+
+calc_frag:
+    # for redefine_frag, metadata stlfr=4, clfr=10
+    minreads: 4
+    # tolerance N in BC
+    n_tolerance: 2
+    # slice chromosome region for faster turnaround
+    region: "chr19"
+    # split distances to use for long fragment calculations
+    split_dist: [50000]
+    # minimum fragment length for fragment calculations
+    min_frag: 750
+    # true=check dup pos, but N_Reads always dedup; include duplicates, in fragment calculations. If two reads share the same barcode and mapping position they're treated as duplicates anyway.
+    include_dups: True
+    # object_store_memory=200*1024*1024*1024, memory=100*1024*1024*1024 [(200,1024), (100, 1024)]
+    # set ray mem, no space between numbers, need to be 200G
+    ray_mem: "200,1024,100,1024"
+    # ray_mem: "9000,1,9000,1"
+    writeouttsvs: True
+    # mapq default 30
+    mapping_quality: 30
+    apply_quality_filter: True
+    num_bin_in_frag: 10
+    ylim: 100
+longhap:
+    # Longhap parameters, window size determines bin size for calculations
+    win_size: 10000000
+    # Max expected length of LFR fragment
+    max_lfr_len: 300000
+    min_barcode: 1
+    min_link: 1
+frag_de_novo:
+    reads_per_BC: 50
+    margin: 5
+    denovo_assembler: "/home/ycai/tools/SPAdes-3.14.0-Linux/bin/spades.py"
+    spades_phred-offset: 55
+    quast_dir: "/home/eanderson/quast/quast.py"
+    quast_min_contig: 100
+    quast_space-efficient: True
+benchmark:
+    ############ path to snp benchmark in SJ ############
+    # # Should just be able to change the number in HG00N to the appropriate sample
+    benchmark_snp: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_GIAB_HG001/benchmark_snp.chrfix.vcf.gz"
+    # path to indel benchmark
+    benchmark_indel: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_GIAB_HG001/benchmark_indel.chrfix.vcf.gz"
+    # path to high confidence bed file
+    bedfile: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_GIAB_HG001/benchmark_bed.chrfix.bed"
+    # path to reference sdf, should just need to change if you change the reference and plan to benchmark
+    ref_sdf: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_benchmark_ref/GRCh38.sdf"
+    ############ ############
+
+
+    ############ path to snp benchmark in SZ ############
+    # Should just be able to change the number in HG00N to the appropriate sample
+    # benchmark_snp: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_GIAB_HG001/benchmark_snp.chrfix.vcf.gz"
+    # # path to indel benchmark
+    # benchmark_indel: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_GIAB_HG001/benchmark_indel.chrfix.vcf.gz"
+    # # path to high confidence bed file
+    # bedfile: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_GIAB_HG001/benchmark_bed.chrfix.bed"
+    # # path to reference sdf, should just need to change if you change the reference and plan to benchmark
+    # ref_sdf: "/home/ycai/ycai/pipeline/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_benchmark_ref/GRCh38.sdf"
+    ############ ############
+    
+    # leave blank unless it's a benchmarked sample
+    # Currently these directories aren't set up for hg38, though they're really just the truth VCFs split up by chromosome
+    truth_vcf_dir: "/research/rv-02/home/eanderson/CGI_WGS_Pipeline/Data_and_Tools/data/hg38_GIAB_HG001/HG001_GRCh38_GIAB_by_chr"
+    # directorty of vcfs for phasing; formatted as truth_chroms_{chr}.vcf
+threads:
+    # threads for various multi-threaded processes
+    # These can be modified if you wish
+    # They're automatically capped to the number of threads you specify when running snakemake with the -j option
+    ### # in SJ
+    bwa: 100
+    haplotyper: 100
+    ########### in SZ ############
+    # bwa: 20
+    # haplotyper: 20
+    ############ ############
+    metrics: 10
+    gnu_parallel: 20
+    calc_frag: 4
+    split_group: 80
+    quast: 4
+
+    
